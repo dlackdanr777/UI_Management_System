@@ -1,3 +1,4 @@
+using Muks.MobileUI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,6 +8,7 @@ namespace Muks.PcUI
 {
     public class PcUINavigation : MonoBehaviour
     {
+        [Serializable]
         public struct ViewDicStruct
         {
             [Tooltip("Key")]
@@ -16,7 +18,7 @@ namespace Muks.PcUI
             public PcUIView UIView;
         }
 
-        [Tooltip("이 클래스에서 관리할 UIView를 넣는 곳")]
+        [Tooltip("이곳에서 관리할 UIView")]
         [SerializeField] private ViewDicStruct[] _uiViewList;
 
         /// <summary> ViewDicStruct에서 설정한 Name을 Key로, UIView를 값으로 저장해놓는 딕셔너리 </summary>
@@ -51,8 +53,6 @@ namespace Muks.PcUI
                     _activeViewList.AddFirst(uiView);
                     uiView.transform.SetAsLastSibling();
                 };
-
-               uiView.gameObject.SetActive(false);
             }
         }
 
@@ -114,6 +114,18 @@ namespace Muks.PcUI
                 _activeViewList.Remove(uiView);
                 uiView.Hide();
             }
+        }
+
+
+        public VisibleState GetVisibleStateByViewName(string viewName)
+        {
+            if (_viewDic.TryGetValue(viewName, out PcUIView view))
+            {
+                return view.VisibleState;
+            }
+
+            Debug.LogErrorFormat("{0}에 대응되는 UIView가 존재하지 않습니다.", viewName);
+            return default;
         }
 
 
