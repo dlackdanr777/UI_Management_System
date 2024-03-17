@@ -13,7 +13,7 @@ namespace Muks.PcUI
     }
 
 
-    public abstract class UIView : MonoBehaviour
+    public abstract class PcUIView : MonoBehaviour
     {
         ///  <summary> Appeared, Disappeared일때 Show(), Hide()실행 가능</summary>
         public VisibleState VisibleState;
@@ -21,12 +21,12 @@ namespace Muks.PcUI
         /// <summary> UI창을 클릭했을때 실행될 대리자 </summary>
         public Action OnFocus;
 
-        protected UINavigation _uiNav;
+        protected PcUINavigation _uiNav;
 
         protected RectTransform _rectTransform;
 
 
-        public virtual void Init(UINavigation uiNav)
+        public virtual void Init(PcUINavigation uiNav)
         {
             _uiNav = uiNav;
             _rectTransform = GetComponent<RectTransform>();

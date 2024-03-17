@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Muks.PcUI
 {
-    public class UINavigation : MonoBehaviour
+    public class PcUINavigation : MonoBehaviour
     {
         public struct ViewDicStruct
         {
@@ -13,16 +13,16 @@ namespace Muks.PcUI
             public string Name;
 
             [Tooltip("Value")]
-            public UIView UIView;
+            public PcUIView UIView;
         }
 
         [Tooltip("이 클래스에서 관리할 UIView를 넣는 곳")]
         [SerializeField] private ViewDicStruct[] _uiViewList;
 
         /// <summary> ViewDicStruct에서 설정한 Name을 Key로, UIView를 값으로 저장해놓는 딕셔너리 </summary>
-        private Dictionary<string, UIView> _viewDic = new Dictionary<string, UIView>();
+        private Dictionary<string, PcUIView> _viewDic = new Dictionary<string, PcUIView>();
 
-        private LinkedList<UIView> _activeViewList = new LinkedList<UIView>();
+        private LinkedList<PcUIView> _activeViewList = new LinkedList<PcUIView>();
 
         public int Count => _activeViewList.Count;
 
@@ -40,7 +40,7 @@ namespace Muks.PcUI
             for (int i = 0, count = _uiViewList.Length; i < count; i++)
             {
                 string name = _uiViewList[i].Name;
-                UIView uiView = _uiViewList[i].UIView;
+                PcUIView uiView = _uiViewList[i].UIView;
                 _viewDic.Add(name, uiView);
 
                 uiView.Init(this);
@@ -56,10 +56,11 @@ namespace Muks.PcUI
             }
         }
 
+
         /// <summary>이름을 받아 해당하는 UIView를 열어주는 함수</summary>
         public void Show(string viewName)
         {
-            if (_viewDic.TryGetValue(viewName, out UIView uiView))
+            if (_viewDic.TryGetValue(viewName, out PcUIView uiView))
             {
                 if (!ViewsVisibleStateCheck())
                     return;
@@ -102,7 +103,7 @@ namespace Muks.PcUI
         /// <summary> viewName을 확인해 해당 UI를 닫는 함수</summary>
         public void Pop(string viewName)
         {
-            if (_viewDic.TryGetValue(viewName, out UIView uiView))
+            if (_viewDic.TryGetValue(viewName, out PcUIView uiView))
             {
                 if (!ViewsVisibleStateCheck())
                     return;
@@ -119,7 +120,7 @@ namespace Muks.PcUI
         /// <summary>열려있는 UI의 VisibleState를 확인 후 bool값을 리턴하는 함수</summary>
         private bool ViewsVisibleStateCheck()
         {
-            foreach (UIView view in _viewDic.Values)
+            foreach (PcUIView view in _viewDic.Values)
             {
                 if (view.VisibleState == VisibleState.Disappearing || view.VisibleState == VisibleState.Appearing)
                 {
