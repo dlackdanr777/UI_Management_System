@@ -2,12 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Muks.PcUI;
-
+using UnityEngine.UI;
 
 [RequireComponent(typeof(PcUINavigation))]
 
 public class PcUIMain : MonoBehaviour
 {
+    [Header("Components")]
+    [SerializeField]private Button _testUI1Button;
+    [SerializeField] private Button _testUI2Button;
+    [SerializeField] private Button _testUI3Button;
 
     private PcUINavigation _uiNav;
 
@@ -15,29 +19,44 @@ public class PcUIMain : MonoBehaviour
     private void Awake()
     {
         _uiNav = GetComponent<PcUINavigation>();
+        _testUI1Button.onClick.AddListener(() => ShowAndHideUI("TestUI1"));
+        _testUI2Button.onClick.AddListener(() => ShowAndHideUI("TestUI2"));
+        _testUI3Button.onClick.AddListener(() => ShowAndHideUI("TestUI3"));
+
     }
 
 
     private void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Q))
+        if(Input.GetKeyDown(KeyCode.Escape))
         {
-            VisibleState viewState = _uiNav.GetVisibleStateByViewName("TestUI1");
-            if (viewState == VisibleState.Disappeared)
-                _uiNav.Show("TestUI1");
-
-            else if(viewState == VisibleState.Appeared)
-                _uiNav.Pop("TestUI1");
+            _uiNav.Pop();
         }
 
-        if (Input.GetKeyDown(KeyCode.W))
+        else if(Input.GetKeyDown(KeyCode.Q))
         {
-            VisibleState viewState = _uiNav.GetVisibleStateByViewName("TestUI2");
-            if (viewState == VisibleState.Disappeared)
-                _uiNav.Show("TestUI2");
-
-            else if (viewState == VisibleState.Appeared)
-                _uiNav.Pop("TestUI2");
+            ShowAndHideUI("TestUI1");
         }
+
+        else if (Input.GetKeyDown(KeyCode.W))
+        {
+            ShowAndHideUI("TestUI2");
+        }
+
+        else if (Input.GetKeyDown(KeyCode.E))
+        {
+            ShowAndHideUI("TestUI3");
+        }
+    }
+
+
+    private void ShowAndHideUI(string viewName)
+    {
+        VisibleState viewState = _uiNav.GetVisibleStateByViewName(viewName);
+        if (viewState == VisibleState.Disappeared)
+            _uiNav.Push(viewName);
+
+        else if (viewState == VisibleState.Appeared)
+            _uiNav.Pop(viewName);
     }
 }

@@ -58,7 +58,7 @@ namespace Muks.PcUI
 
 
         /// <summary>이름을 받아 해당하는 UIView를 열어주는 함수</summary>
-        public void Show(string viewName)
+        public void Push(string viewName)
         {
             if (_viewDic.TryGetValue(viewName, out PcUIView uiView))
             {
@@ -82,7 +82,7 @@ namespace Muks.PcUI
 
 
         /// <summary>포커스중인 UI를 닫는 함수</summary>
-        public void Hide()
+        public void Pop()
         {
             if (!ViewsVisibleStateCheck())
                 return;
@@ -114,6 +114,30 @@ namespace Muks.PcUI
                 _activeViewList.Remove(uiView);
                 uiView.Hide();
             }
+        }
+
+
+
+        /// <summary> view를 매개 변수로 받아 해당 UI를 닫는 함수</summary>
+        public void Pop(PcUIView uiView)
+        {
+            if (!ViewsVisibleStateCheck())
+                return;
+
+            if (!_activeViewList.Contains(uiView))
+                return;
+
+            foreach (PcUIView view in _viewDic.Values)
+            {
+                if (uiView != view)
+                    continue;
+
+                _activeViewList.Remove(uiView);
+                uiView.Hide();
+                return;
+            }
+
+            Debug.LogError("해당 uiView가 현재 UI Navigation에 등록되있지 않습니다.");
         }
 
 
