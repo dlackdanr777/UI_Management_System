@@ -7,21 +7,26 @@ using Muks.Tween;
 
 
 [RequireComponent(typeof(CanvasGroup))]
-public class TestUI1 : PcUIView
+public class TestUI3 : PcUIView
 {
+    [Header("Components")]
+    [SerializeField] private RectTransform _animationTarget;
     [SerializeField] private Button _exitButton;
-
 
     private CanvasGroup _canvasGroup;
 
-    private Vector3 _startScale => new Vector3(0.5f, 0.5f, 0.5f);
+    private Vector2 _tmpPos;
+    private Vector2 _startPos => _tmpPos + new Vector2(0, 100);
+    private Vector2 _endPos => _tmpPos - new Vector2(0, 100);
+
 
     public override void Init(PcUINavigation uiNav)
     {
         base.Init(uiNav);
-        _canvasGroup = GetComponent<CanvasGroup>();
 
+        _canvasGroup = GetComponent<CanvasGroup>();
         _exitButton.onClick.AddListener(OnExitButtonClicked);
+        _tmpPos = _animationTarget.anchoredPosition;
         gameObject.SetActive(false);
     }
 
@@ -31,29 +36,30 @@ public class TestUI1 : PcUIView
         gameObject.SetActive(true);
         VisibleState = VisibleState.Disappearing;
         _canvasGroup.blocksRaycasts = false;
-        transform.localScale = Vector3.one;
 
-        Tween.TransformScale(gameObject, _startScale, 0.3f, TweenMode.EaseInBack, () =>
+        _tmpPos = _animationTarget.anchoredPosition;
+
+        Tween.RectTransfromAnchoredPosition(_animationTarget.gameObject, _endPos, 0.3f, TweenMode.EaseInBack, () =>
         {
             VisibleState = VisibleState.Disappeared;
             gameObject.SetActive(false);
         });
-
     }
 
 
     public override void Show()
     {
         gameObject.SetActive(true);
-        _canvasGroup.blocksRaycasts = false;
         VisibleState = VisibleState.Appearing;
-        transform.localScale = _startScale;
+        _canvasGroup.blocksRaycasts = false;
 
-        Vector3 targetScale = Vector3.one;
-        Tween.TransformScale(gameObject, targetScale, 0.3f, TweenMode.EaseOutBack, () =>
+        _animationTarget.anchoredPosition = _startPos;
+
+        Tween.RectTransfromAnchoredPosition(_animationTarget.gameObject, _tmpPos, 0.3f, TweenMode.EaseOutBack, () =>
         {
             VisibleState = VisibleState.Appeared;
             _canvasGroup.blocksRaycasts = true;
+            gameObject.SetActive(true);
         });
     }
 

@@ -12,6 +12,7 @@ public class PcUIMain : MonoBehaviour
     [SerializeField]private Button _testUI1Button;
     [SerializeField] private Button _testUI2Button;
     [SerializeField] private Button _testUI3Button;
+    [SerializeField] private Image _cursorImage;
 
     private PcUINavigation _uiNav;
 
@@ -22,13 +23,14 @@ public class PcUIMain : MonoBehaviour
         _testUI1Button.onClick.AddListener(() => ShowAndHideUI("TestUI1"));
         _testUI2Button.onClick.AddListener(() => ShowAndHideUI("TestUI2"));
         _testUI3Button.onClick.AddListener(() => ShowAndHideUI("TestUI3"));
-
     }
 
 
     private void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Escape))
+        _cursorImage.transform.position = Input.mousePosition;
+
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
             _uiNav.Pop();
         }

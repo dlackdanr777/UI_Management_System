@@ -1,3 +1,4 @@
+using Muks.PcUI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,17 +22,14 @@ namespace Muks.MobileUI
         [Tooltip("최상위 lootUIView")]
         [SerializeField] private ViewDicStruct _rootUiView;
 
-        [Tooltip("종료 UI")]
-        [SerializeField] private ViewDicStruct _exitUiView;
-
         [Tooltip("이 클래스에서 관리할 UIViews")]
-        [SerializeField] private ViewDicStruct[] _uiViewList;
+        [SerializeField] private ViewDicStruct[] _uiViews;
 
 
-        private List<MobileUIView> _uiViews = new List<MobileUIView>();
+        private List<MobileUIView> _uiViewList = new List<MobileUIView>();
         private Dictionary<string, MobileUIView> _viewDic = new Dictionary<string, MobileUIView>();
         private int _hideMainUICount = 0;
-        public int Count => _uiViews.Count;
+        public int Count => _uiViewList.Count;
 
 
         private void Start()
@@ -40,40 +38,15 @@ namespace Muks.MobileUI
         }
 
 
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                //만약 켜져있는 UI가 있을 경우엔 UI를 끈다
-                if (0 < Count)
-                {
-                    Pop();
-                }
-
-                //아닐 경우엔 게임 종료 UI를 띄운다.
-                else
-                {
-                    Push(_exitUiView.Name);
-                }
-            }
-        }
-
-
         private void Init()
         {
             _viewDic.Clear();
             _rootUiView.UIView?.Init(this);
 
-            if (_exitUiView.UIView != null)
+            for (int i = 0, count = _uiViews.Length; i < count; i++)
             {
-                _exitUiView.UIView.Init(this);
-                _viewDic.Add(_exitUiView.Name, _exitUiView.UIView);
-            }
-
-            for (int i = 0, count = _uiViewList.Length; i < count; i++)
-            {
-                string name = _uiViewList[i].Name;
-                MobileUIView uiView = _uiViewList[i].UIView;
+                string name = _uiViews[i].Name;
+                MobileUIView uiView = _uiViews[i].UIView;
                 _viewDic.Add(name, uiView);
                 uiView.Init(this);
             }
@@ -85,7 +58,7 @@ namespace Muks.MobileUI
         {
             if (_viewDic.TryGetValue(viewName, out MobileUIView uiView))
             {
-                if (_uiViews.Contains(uiView))
+                if (_uiViewList.Contains(uiView))
                     return true;
             }
             return false;
@@ -95,104 +68,142 @@ namespace Muks.MobileUI
         /// <summary>이름을 받아 현재 이름의 view를 열어주는 함수</summary>
         public void Push(string viewName)
         {
+            //애니메이션이 진행중인 View가 있으면 Push, Pop을 막는다.
+            if (!ViewsVisibleStateCheck())
+                return;
+
             if (_viewDic.TryGetValue(viewName, out MobileUIView uiView))
             {
-                foreach (MobileUIView view in _viewDic.Values)
+                if (!_uiViewList.Contains(uiView))
                 {
-                    if (view.VisibleState == VisibleState.Disappearing || view.VisibleState == VisibleState.Appearing)
-                    {
-                        Debug.Log("UI가 열리거나 닫히는 중 입니다.");
-                        return;
-                    }
-                }
-
-                if (!_uiViews.Contains(uiView))
-                {
-                    _uiViews.Add(uiView);
+                    _uiViewList.Add(uiView);
                     uiView.Show();
                 }
                 else
                 {
-                    _uiViews.Remove(uiView);
-                    _uiViews.Add(uiView);
+                    _uiViewList.Remove(uiView);
+                    _uiViewList.Add(uiView);
                     uiView.gameObject.SetActive(true);
                 }
 
                 uiView.RectTransform.SetAsLastSibling();
+                return;
             }
-            else
+
+            Debug.LogError("딕셔너리에 해당 이름을 가진 UIView클래스가 없습니다.");
+        }
+
+
+        /// <summary>View Class를 받아 Veiw를 열어주는 함수</summary>
+        public void Push(MobileUIView uiView)
+        {
+            //애니메이션이 진행중인 View가 있으면 Push, Pop을 막는다.
+            if (!ViewsVisibleStateCheck())
+                return;
+
+            foreach(MobileUIView view in _viewDic.Values)
             {
-                Debug.LogError("딕셔너리에 해당 이름을 가진 UIView클래스가 없습니다.");
+                if (uiView != view)
+                    continue;
+
+                if (!_uiViewList.Contains(uiView))
+                {
+                    _uiViewList.Add(uiView);
+                    uiView.Show();
+                }
+                else
+                {
+                    _uiViewList.Remove(uiView);
+                    _uiViewList.Add(uiView);
+                    uiView.gameObject.SetActive(true);
+                }
+
+                uiView.RectTransform.SetAsLastSibling();
+                return;
             }
+
+            Debug.LogError("딕셔너리에 해당 이름을 가진 UIView클래스가 없습니다.");
         }
 
 
         /// <summary>현재 ui 전에 열렸던 ui를 불러오는 함수</summary> 
         public void Pop()
         {
-
-            foreach (MobileUIView view in _viewDic.Values)
-            {
-                if (view.VisibleState == VisibleState.Disappearing || view.VisibleState == VisibleState.Appearing)
-                {
-                    Debug.Log("UI가 열리거나 닫히는 중 입니다.");
-                    return;
-                }
-            }
-
-            if (_uiViews.Count <= 0)
+            //애니메이션이 진행중인 View가 있으면 Push, Pop을 막는다.
+            if (!ViewsVisibleStateCheck())
                 return;
 
-            MobileUIView selectView = _uiViews.Last();
+            if (_uiViewList.Count <= 0)
+            {
+                Debug.LogError("열려 있는 UI가 없습니다.");
+                return;
+            }
+
+            MobileUIView selectView = _uiViewList[Count - 1];
             selectView.Hide();
-            _uiViews.RemoveAt(Count - 1);
+            _uiViewList.RemoveAt(Count - 1);
 
-            if (1 <= _uiViews.Count)
-                _uiViews.Last().RectTransform.SetAsLastSibling();
-
+            if (1 <= _uiViewList.Count)
+                _uiViewList.Last().RectTransform.SetAsLastSibling();
         }
 
 
         /// <summary> viewName을 확인해 해당 UI 를 감추는 함수</summary>
         public void Pop(string viewName)
         {
-            foreach (MobileUIView view in _viewDic.Values)
+            //애니메이션이 진행중인 View가 있으면 Push, Pop을 막는다.
+            if (!ViewsVisibleStateCheck())
+                return;
+
+            if (_uiViewList.Count <= 0)
+                return;
+
+            MobileUIView view = _uiViewList.Find(x => x == _viewDic[viewName]);
+            if (view == null)
             {
-                if (view.VisibleState == VisibleState.Disappearing || view.VisibleState == VisibleState.Appearing)
-                {
-                    Debug.Log("UI가 열리거나 닫히는 중 입니다.");
-                    return;
-                }
+                Debug.LogError("해당 uiView가 열려있지 않습니다.");
+                return;
             }
 
-            if (_uiViews.Count <= 0)
+            view.Hide();
+            _uiViewList.Remove(view);
+        }
+
+
+
+        /// <summary> view를 매개 변수로 받아 해당 UI를 닫는 함수</summary>
+        public void Pop(MobileUIView uiView)
+        {
+            //애니메이션이 진행중인 View가 있으면 Push, Pop을 막는다.
+            if (!ViewsVisibleStateCheck())
                 return;
 
-            if (_uiViews.Find(x => x == _viewDic[viewName]) == null)
+            if (_uiViewList.Count <= 0)
                 return;
 
-            MobileUIView selectView = _uiViews.Find(x => x == _viewDic[viewName]);
-            selectView.Hide();
-            _uiViews.Remove(selectView);
+            MobileUIView view = _uiViewList.Find(x => x == uiView);
+            if (view == null)
+            {
+                Debug.LogError("해당 uiView가 열려있지 않습니다.");
+                return;
+            }
+
+            _uiViewList.Remove(uiView);
+            uiView.Hide();
         }
 
 
         /// <summary>맨 처음 열렸던 ui로 이동하는 함수</summary>
         public void Clear()
         {
-            foreach (MobileUIView view in _viewDic.Values)
-            {
-                if (view.VisibleState == VisibleState.Disappearing || view.VisibleState == VisibleState.Appearing)
-                {
-                    Debug.Log("UI가 열리거나 닫히는 중 입니다.");
-                    return;
-                }
-            }
+            //애니메이션이 진행중인 View가 있으면 Push, Pop을 막는다.
+            if (!ViewsVisibleStateCheck())
+                return;
 
-            while (_uiViews.Count > 0)
+            while (_uiViewList.Count > 0)
             {
-                _uiViews.Last().Hide();
-                _uiViews.Remove(_uiViews.Last());
+                _uiViewList.Last().Hide();
+                _uiViewList.Remove(_uiViewList.Last());
             }
         }
 
@@ -202,7 +213,7 @@ namespace Muks.MobileUI
         {
             _rootUiView.UIView.gameObject.SetActive(true);
 
-            foreach (MobileUIView view in _uiViews)
+            foreach (MobileUIView view in _uiViewList)
             {
                 view.gameObject.SetActive(true);
             }
@@ -214,7 +225,7 @@ namespace Muks.MobileUI
         {
             _rootUiView.UIView.gameObject.SetActive(false);
 
-            foreach (MobileUIView view in _uiViews)
+            foreach (MobileUIView view in _uiViewList)
             {
                 view.gameObject.SetActive(false);
             }
@@ -246,6 +257,25 @@ namespace Muks.MobileUI
 
             return view;
         }
+
+
+        /// <summary>열려있는 UI의 VisibleState를 확인 후 bool값을 리턴하는 함수</summary>
+        private bool ViewsVisibleStateCheck()
+        {
+            foreach (MobileUIView view in _viewDic.Values)
+            {
+                if (view.VisibleState == VisibleState.Disappearing || view.VisibleState == VisibleState.Appearing)
+                {
+                    Debug.Log("UI가 열리거나 닫히는 중 입니다.");
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+
+
     }
 
 }

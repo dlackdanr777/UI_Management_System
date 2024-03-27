@@ -18,8 +18,12 @@ namespace Muks.PcUI
             public PcUIView UIView;
         }
 
+        [Header("Views")]
+        [Tooltip("최상위 lootUIView")]
+        [SerializeField] private ViewDicStruct _rootUiView;
+
         [Tooltip("이곳에서 관리할 UIView")]
-        [SerializeField] private ViewDicStruct[] _uiViewList;
+        [SerializeField] private ViewDicStruct[] _uiViews;
 
         /// <summary> ViewDicStruct에서 설정한 Name을 Key로, UIView를 값으로 저장해놓는 딕셔너리 </summary>
         private Dictionary<string, PcUIView> _viewDic = new Dictionary<string, PcUIView>();
@@ -39,10 +43,10 @@ namespace Muks.PcUI
         {
             _viewDic.Clear();
             //uiViewList에 저장된 값을 딕셔너리에 저장
-            for (int i = 0, count = _uiViewList.Length; i < count; i++)
+            for (int i = 0, count = _uiViews.Length; i < count; i++)
             {
-                string name = _uiViewList[i].Name;
-                PcUIView uiView = _uiViewList[i].UIView;
+                string name = _uiViews[i].Name;
+                PcUIView uiView = _uiViews[i].UIView;
                 _viewDic.Add(name, uiView);
 
                 uiView.Init(this);
@@ -62,6 +66,7 @@ namespace Muks.PcUI
         {
             if (_viewDic.TryGetValue(viewName, out PcUIView uiView))
             {
+                //애니메이션이 진행중인 View가 있으면 Push, Pop을 막는다.
                 if (!ViewsVisibleStateCheck())
                     return;
 
@@ -81,9 +86,43 @@ namespace Muks.PcUI
         }
 
 
+        /// <summary>View Class를 받아 Veiw를 열어주는 함수</summary>
+        public void Push(PcUIView uiView)
+        {
+            //애니메이션이 진행중인 View가 있으면 Push, Pop을 막는다.
+            if (!ViewsVisibleStateCheck())
+                return;
+
+            foreach (PcUIView view in _viewDic.Values)
+            {
+                if (uiView != view)
+                    continue;
+
+                if (!_activeViewList.Contains(uiView))
+                {
+                    _activeViewList.AddLast(uiView);
+                    uiView.Show();
+                }
+                else
+                {
+                    _activeViewList.Remove(uiView);
+                    _activeViewList.AddLast(uiView);
+                    uiView.gameObject.SetActive(true);
+                }
+
+                uiView.transform.SetAsLastSibling();
+                return;
+            }
+
+            Debug.LogError("딕셔너리에 해당 이름을 가진 UIView클래스가 없습니다.");
+        }
+
+
+
         /// <summary>포커스중인 UI를 닫는 함수</summary>
         public void Pop()
         {
+            //애니메이션이 진행중인 View가 있으면 Push, Pop을 막는다.
             if (!ViewsVisibleStateCheck())
                 return;
 
@@ -103,11 +142,12 @@ namespace Muks.PcUI
         /// <summary> viewName을 확인해 해당 UI를 닫는 함수</summary>
         public void Pop(string viewName)
         {
+            //애니메이션이 진행중인 View가 있으면 Push, Pop을 막는다.
+            if (!ViewsVisibleStateCheck())
+                return;
+
             if (_viewDic.TryGetValue(viewName, out PcUIView uiView))
             {
-                if (!ViewsVisibleStateCheck())
-                    return;
-
                 if (!_activeViewList.Contains(uiView))
                     return;
 
@@ -121,6 +161,7 @@ namespace Muks.PcUI
         /// <summary> view를 매개 변수로 받아 해당 UI를 닫는 함수</summary>
         public void Pop(PcUIView uiView)
         {
+            //애니메이션이 진행중인 View가 있으면 Push, Pop을 막는다.
             if (!ViewsVisibleStateCheck())
                 return;
 
@@ -138,6 +179,30 @@ namespace Muks.PcUI
             }
 
             Debug.LogError("해당 uiView가 현재 UI Navigation에 등록되있지 않습니다.");
+        }
+
+
+        /// <summary> 꺼놨던 모든 UIView를 SetActive(true)한다. </summary>
+        public void AllShow()
+        {
+            _rootUiView.UIView.gameObject.SetActive(true);
+
+            foreach (PcUIView view in _activeViewList)
+            {
+                view.gameObject.SetActive(true);
+            }
+        }
+
+
+        /// <summary> 켜놨던 모든 UIView를 SetActive(false)한다. </summary>
+        public void AllHide()
+        {
+            _rootUiView.UIView.gameObject.SetActive(false);
+
+            foreach (PcUIView view in _activeViewList)
+            {
+                view.gameObject.SetActive(false);
+            }
         }
 
 

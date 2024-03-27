@@ -1,0 +1,49 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using Muks.MobileUI;
+
+public class MobileExitUI : MobileUIView
+{
+    [Header("Components")]
+    [SerializeField] private Button _okButton;
+    [SerializeField] private Button _cancelButton;
+
+
+    public override void Init(MobileUINavigation uiNav)
+    {
+        base.Init(uiNav);
+        gameObject.SetActive(false);
+        _okButton.onClick.AddListener(OnOkButtonClicked);
+        _cancelButton.onClick.AddListener(OnCancelButtonClicked);
+    }
+
+
+    public override void Show()
+    {
+        VisibleState = VisibleState.Appeared;
+        gameObject.SetActive(true);
+    }
+
+
+    public override void Hide()
+    {
+        VisibleState = VisibleState.Disappeared;
+        gameObject.SetActive(false);
+    }
+
+
+    private void OnOkButtonClicked()
+    {
+        Application.Quit();
+    }
+
+
+    private void OnCancelButtonClicked()
+    {
+        _uiNav.Pop(this);
+    }
+
+
+}
