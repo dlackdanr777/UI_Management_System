@@ -1,3 +1,4 @@
+using Muks.MobileUI;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -211,6 +212,34 @@ namespace Muks.PcUI
 
             Debug.LogErrorFormat("{0}에 대응되는 UIView가 존재하지 않습니다.", viewName);
             return default;
+        }
+
+
+        /// <summary>매개 변수에 해당하는 UIView Class가 활성화된 상태면 참, 아니면 거짓을 반환하는 함수</summary>
+        public bool ActiveViewCheck(string viewName)
+        {
+            if (_viewDic.TryGetValue(viewName, out PcUIView uiView))
+            {
+                if (_activeViewList.Contains(uiView))
+                    return true;
+            }
+
+            else
+            {
+                Debug.LogErrorFormat("{0}에 해당하는 UIView가 존재하지 않습니다.");
+                return false;
+            }
+
+            return false;
+        }
+
+        /// <summary>매개 변수에 해당하는 UIView Class가 활성화된 상태면 참, 아니면 거짓을 반환하는 함수</summary>
+        public bool ActiveViewCheck(PcUIView uiView)
+        {
+            if (_activeViewList.Contains(uiView))
+                return true;
+
+            return false;
         }
 
 

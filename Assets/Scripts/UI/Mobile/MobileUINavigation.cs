@@ -1,3 +1,4 @@
+using Muks.PcUI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,10 +18,10 @@ namespace Muks.MobileUI
         [SerializeField] private ViewDicStruct[] _uiViews;
 
 
-        private List<MobileUIView> _uiViewList = new List<MobileUIView>();
+        private List<MobileUIView> _activeViewList = new List<MobileUIView>();
         private Dictionary<string, MobileUIView> _viewDic = new Dictionary<string, MobileUIView>();
         private int _hideMainUICount = 0;
-        public int Count => _uiViewList.Count;
+        public int Count => _activeViewList.Count;
 
 
         private void Start()
@@ -44,18 +45,6 @@ namespace Muks.MobileUI
         }
 
 
-        /// <summary>매개 변수에 해당하는 UIView Class가 존재하면 참, 아니면 거짓을 반환하는 함수</summary>
-        public bool Check(string viewName)
-        {
-            if (_viewDic.TryGetValue(viewName, out MobileUIView uiView))
-            {
-                if (_uiViewList.Contains(uiView))
-                    return true;
-            }
-            return false;
-        }
-
-
         /// <summary>이름을 받아 현재 이름의 view를 열어주는 함수</summary>
         public void Push(string viewName)
         {
@@ -65,19 +54,19 @@ namespace Muks.MobileUI
 
             if (_viewDic.TryGetValue(viewName, out MobileUIView uiView))
             {
-                if (!_uiViewList.Contains(uiView))
+                if (!_activeViewList.Contains(uiView))
                 {
-                    _uiViewList.Add(uiView);
+                    _activeViewList.Add(uiView);
                     uiView.Show();
                 }
                 else
                 {
-                    _uiViewList.Remove(uiView);
-                    _uiViewList.Add(uiView);
+                    _activeViewList.Remove(uiView);
+                    _activeViewList.Add(uiView);
                     uiView.gameObject.SetActive(true);
                 }
 
-                uiView.RectTransform.SetAsLastSibling();
+                uiView.transform.SetAsLastSibling();
                 return;
             }
 
@@ -97,19 +86,19 @@ namespace Muks.MobileUI
                 if (uiView != view)
                     continue;
 
-                if (!_uiViewList.Contains(uiView))
+                if (!_activeViewList.Contains(uiView))
                 {
-                    _uiViewList.Add(uiView);
+                    _activeViewList.Add(uiView);
                     uiView.Show();
                 }
                 else
                 {
-                    _uiViewList.Remove(uiView);
-                    _uiViewList.Add(uiView);
+                    _activeViewList.Remove(uiView);
+                    _activeViewList.Add(uiView);
                     uiView.gameObject.SetActive(true);
                 }
 
-                uiView.RectTransform.SetAsLastSibling();
+                uiView.transform.SetAsLastSibling();
                 return;
             }
 
@@ -124,18 +113,18 @@ namespace Muks.MobileUI
             if (!ViewsVisibleStateCheck())
                 return;
 
-            if (_uiViewList.Count <= 0)
+            if (_activeViewList.Count <= 0)
             {
                 Debug.LogError("열려 있는 UI가 없습니다.");
                 return;
             }
 
-            MobileUIView selectView = _uiViewList[Count - 1];
+            MobileUIView selectView = _activeViewList[Count - 1];
             selectView.Hide();
-            _uiViewList.RemoveAt(Count - 1);
+            _activeViewList.RemoveAt(Count - 1);
 
-            if (1 <= _uiViewList.Count)
-                _uiViewList.Last().RectTransform.SetAsLastSibling();
+            if (1 <= _activeViewList.Count)
+                _activeViewList.Last().transform.SetAsLastSibling();
         }
 
 
@@ -146,10 +135,10 @@ namespace Muks.MobileUI
             if (!ViewsVisibleStateCheck())
                 return;
 
-            if (_uiViewList.Count <= 0)
+            if (_activeViewList.Count <= 0)
                 return;
 
-            MobileUIView view = _uiViewList.Find(x => x == _viewDic[viewName]);
+            MobileUIView view = _activeViewList.Find(x => x == _viewDic[viewName]);
             if (view == null)
             {
                 Debug.LogError("해당 uiView가 열려있지 않습니다.");
@@ -157,7 +146,7 @@ namespace Muks.MobileUI
             }
 
             view.Hide();
-            _uiViewList.Remove(view);
+            _activeViewList.Remove(view);
         }
 
 
@@ -169,33 +158,18 @@ namespace Muks.MobileUI
             if (!ViewsVisibleStateCheck())
                 return;
 
-            if (_uiViewList.Count <= 0)
+            if (_activeViewList.Count <= 0)
                 return;
 
-            MobileUIView view = _uiViewList.Find(x => x == uiView);
+            MobileUIView view = _activeViewList.Find(x => x == uiView);
             if (view == null)
             {
                 Debug.LogError("해당 uiView가 열려있지 않습니다.");
                 return;
             }
 
-            _uiViewList.Remove(uiView);
+            _activeViewList.Remove(uiView);
             uiView.Hide();
-        }
-
-
-        /// <summary>맨 처음 열렸던 ui로 이동하는 함수</summary>
-        public void Clear()
-        {
-            //애니메이션이 진행중인 View가 있으면 Push, Pop을 막는다.
-            if (!ViewsVisibleStateCheck())
-                return;
-
-            while (_uiViewList.Count > 0)
-            {
-                _uiViewList.Last().Hide();
-                _uiViewList.Remove(_uiViewList.Last());
-            }
         }
 
 
@@ -204,7 +178,7 @@ namespace Muks.MobileUI
         {
             _rootUiView.UIView.gameObject.SetActive(true);
 
-            foreach (MobileUIView view in _uiViewList)
+            foreach (MobileUIView view in _activeViewList)
             {
                 view.gameObject.SetActive(true);
             }
@@ -216,13 +190,16 @@ namespace Muks.MobileUI
         {
             _rootUiView.UIView.gameObject.SetActive(false);
 
-            foreach (MobileUIView view in _uiViewList)
+            foreach (MobileUIView view in _activeViewList)
             {
                 view.gameObject.SetActive(false);
             }
         }
 
 
+        //RootUI만을 끄는 상황이 없었으므로 임시 주석처리
+        //AllHide(), AllShow()로 끌 수 있기에 사용 하지 않음
+/*
         public void HideRootUI()
         {
             _hideMainUICount += 1;
@@ -237,16 +214,47 @@ namespace Muks.MobileUI
             if (_hideMainUICount == 0)
                 _rootUiView.UIView.gameObject?.SetActive(true);
         }
+*/
 
 
-        public MobileUIView GetUIView(string viewName)
+        /// <summary>매개 변수에 해당하는 UIView Class가 활성화된 상태면 참, 아니면 거짓을 반환하는 함수</summary>
+        public bool ActiveViewCheck(string viewName)
+        {
+            if (_viewDic.TryGetValue(viewName, out MobileUIView uiView))
+            {
+                if (_activeViewList.Contains(uiView))
+                    return true;
+            }
+
+            else
+            {
+                Debug.LogErrorFormat("{0}에 해당하는 UIView가 존재하지 않습니다.");
+                return false;
+            }
+
+            return false;
+        }
+
+
+        /// <summary>매개 변수에 해당하는 UIView Class가 활성화된 상태면 참, 아니면 거짓을 반환하는 함수</summary>
+        public bool ActiveViewCheck(MobileUIView uiView)
+        {
+            if (_activeViewList.Contains(uiView))
+                return true;
+
+            return false;
+        }
+
+
+        public VisibleState GetVisibleStateByViewName(string viewName)
         {
             if (_viewDic.TryGetValue(viewName, out MobileUIView view))
             {
-                return view;
+                return view.VisibleState;
             }
 
-            return view;
+            Debug.LogErrorFormat("{0}에 대응되는 UIView가 존재하지 않습니다.", viewName);
+            return default;
         }
 
 

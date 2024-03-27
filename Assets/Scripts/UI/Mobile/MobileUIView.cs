@@ -7,12 +7,12 @@ namespace Muks.MobileUI
     {
         protected MobileUINavigation _uiNav;
 
-        [HideInInspector] public RectTransform RectTransform;
+        protected RectTransform _rectTransform;
 
         public virtual void Init(MobileUINavigation uiNav)
         {
             _uiNav = uiNav;
-            RectTransform = GetComponent<RectTransform>();
+            _rectTransform = GetComponent<RectTransform>();
         }
 
 
