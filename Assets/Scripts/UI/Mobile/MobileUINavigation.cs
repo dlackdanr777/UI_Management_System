@@ -1,4 +1,3 @@
-using Muks.PcUI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,14 +6,6 @@ using UnityEngine;
 
 namespace Muks.MobileUI
 {
-    [Serializable]
-    public struct ViewDicStruct
-    {
-        [Tooltip("View클래스의 이름")]
-        public string Name;
-        public MobileUIView UIView;
-    }
-
 
     public class MobileUINavigation : MonoBehaviour
     {

@@ -1,6 +1,4 @@
-using Muks.MobileUI;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -134,8 +132,6 @@ namespace Muks.PcUI
 
             if (_activeViewList.First == null)
                 return;
-
-            _activeViewList.First.Value.transform.SetAsLastSibling();
         }
 
 
