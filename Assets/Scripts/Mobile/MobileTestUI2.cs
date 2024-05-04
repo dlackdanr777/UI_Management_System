@@ -1,7 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using Muks.MobileUI;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class MobileTestUI2 : MobileUIView
@@ -10,11 +8,11 @@ public class MobileTestUI2 : MobileUIView
     [SerializeField] private Button _exitButton;
 
 
-    public override void Init(MobileUINavigation uiNav)
+    public override void Init()
     {
-        base.Init(uiNav);
         _exitButton.onClick.AddListener(OnExitButtonClicked);
         gameObject.SetActive(false);
+
     }
 
 
@@ -34,7 +32,7 @@ public class MobileTestUI2 : MobileUIView
 
     private void OnExitButtonClicked()
     {
-        _uiNav.Pop(this);
+        _uiNav.Pop("TestUI2");
     }
 
 }

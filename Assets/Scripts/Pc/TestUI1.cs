@@ -1,27 +1,20 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
 using Muks.PcUI;
 using Muks.Tween;
+using UnityEngine;
+using UnityEngine.UI;
 
 
 [RequireComponent(typeof(CanvasGroup))]
 public class TestUI1 : PcUIView
 {
     [SerializeField] private Button _exitButton;
-
-
     private CanvasGroup _canvasGroup;
-
     private Vector3 _startScale => new Vector3(0.5f, 0.5f, 0.5f);
 
 
-    public override void Init(PcUINavigation uiNav)
+    public override void Init()
     {
-        base.Init(uiNav);
         _canvasGroup = GetComponent<CanvasGroup>();
-
         _exitButton.onClick.AddListener(OnExitButtonClicked);
         gameObject.SetActive(false);
     }
@@ -61,6 +54,6 @@ public class TestUI1 : PcUIView
 
     private void OnExitButtonClicked()
     {
-        _uiNav.Pop(this);
+        _uiNav.Pop("TestUI1");
     }
 }

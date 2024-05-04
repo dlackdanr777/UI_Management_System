@@ -14,9 +14,8 @@ public class MobileRootUI : MobileUIView
     [SerializeField] private Button _allHideBUtton;
 
 
-    public override void Init(MobileUINavigation uiNav)
+    public override void Init()
     {
-        base.Init(uiNav);
         _testUI1Button.onClick.AddListener(OnTestUI1ButtonClicked);
         _testUI2Button.onClick.AddListener(OnTestUI2ButtonClicked);
         _testUI3Button.onClick.AddListener(OnTestUI3ButtonClicked);

@@ -1,25 +1,30 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Muks.UI;
 
 
 namespace Muks.MobileUI
 {
 
-    public class MobileUINavigation : MonoBehaviour
+    public class MobileUINavigation : UINavigation
     {
+
         [Header("Views")]
         [Tooltip("최상위 lootUIView")]
-        [SerializeField] private ViewDicStruct _rootUiView;
+        [SerializeField] private MobileViewDicStruct _rootUiView;
 
         [Tooltip("이 클래스에서 관리할 UIViews")]
-        [SerializeField] private ViewDicStruct[] _uiViews;
+        [SerializeField] private MobileViewDicStruct[] _uiViews;
 
+        public override int Count => _activeViewList.Count;
+
+        private bool _isViewsInactive;
+        public override bool IsViewsInactive => _isViewsInactive;
 
         private List<MobileUIView> _activeViewList = new List<MobileUIView>();
         private Dictionary<string, MobileUIView> _viewDic = new Dictionary<string, MobileUIView>();
-        private int _hideMainUICount = 0;
-        public int Count => _activeViewList.Count;
+
 
 
         private void Start()
@@ -31,20 +36,20 @@ namespace Muks.MobileUI
         private void Init()
         {
             _viewDic.Clear();
-            _rootUiView.UIView?.Init(this);
+            _rootUiView.UIView?.ViewInit(this);
 
             for (int i = 0, count = _uiViews.Length; i < count; i++)
             {
                 string name = _uiViews[i].Name;
                 MobileUIView uiView = _uiViews[i].UIView;
                 _viewDic.Add(name, uiView);
-                uiView.Init(this);
+                uiView.ViewInit(this);
             }
         }
 
 
         /// <summary>이름을 받아 현재 이름의 view를 열어주는 함수</summary>
-        public void Push(string viewName)
+        public override void Push(string viewName)
         {
             //애니메이션이 진행중인 View가 있으면 Push, Pop을 막는다.
             if (!ViewsVisibleStateCheck())
@@ -65,47 +70,17 @@ namespace Muks.MobileUI
                 }
 
                 uiView.transform.SetAsLastSibling();
+                OnFocusHandler?.Invoke();
                 return;
             }
 
             Debug.LogError("딕셔너리에 해당 이름을 가진 UIView클래스가 없습니다.");
         }
 
-
-        /// <summary>View Class를 받아 Veiw를 열어주는 함수</summary>
-        public void Push(MobileUIView uiView)
-        {
-            //애니메이션이 진행중인 View가 있으면 Push, Pop을 막는다.
-            if (!ViewsVisibleStateCheck())
-                return;
-
-            foreach(MobileUIView view in _viewDic.Values)
-            {
-                if (uiView != view)
-                    continue;
-
-                if (!_activeViewList.Contains(uiView))
-                {
-                    _activeViewList.Add(uiView);
-                    uiView.Show();
-                }
-                else
-                {
-                    _activeViewList.Remove(uiView);
-                    _activeViewList.Add(uiView);
-                    uiView.gameObject.SetActive(true);
-                }
-
-                uiView.transform.SetAsLastSibling();
-                return;
-            }
-
-            Debug.LogError("딕셔너리에 해당 이름을 가진 UIView클래스가 없습니다.");
-        }
 
 
         /// <summary>현재 ui 전에 열렸던 ui를 불러오는 함수</summary> 
-        public void Pop()
+        public override void Pop()
         {
             //애니메이션이 진행중인 View가 있으면 Push, Pop을 막는다.
             if (!ViewsVisibleStateCheck())
@@ -120,6 +95,7 @@ namespace Muks.MobileUI
             MobileUIView selectView = _activeViewList[Count - 1];
             selectView.Hide();
             _activeViewList.RemoveAt(Count - 1);
+            OnFocusHandler?.Invoke();
 
             if (1 <= _activeViewList.Count)
                 _activeViewList.Last().transform.SetAsLastSibling();
@@ -127,7 +103,7 @@ namespace Muks.MobileUI
 
 
         /// <summary> viewName을 확인해 해당 UI 를 감추는 함수</summary>
-        public void Pop(string viewName)
+        public override void Pop(string viewName)
         {
             //애니메이션이 진행중인 View가 있으면 Push, Pop을 막는다.
             if (!ViewsVisibleStateCheck())
@@ -145,34 +121,13 @@ namespace Muks.MobileUI
 
             view.Hide();
             _activeViewList.Remove(view);
+            OnFocusHandler?.Invoke();
         }
 
-
-
-        /// <summary> view를 매개 변수로 받아 해당 UI를 닫는 함수</summary>
-        public void Pop(MobileUIView uiView)
-        {
-            //애니메이션이 진행중인 View가 있으면 Push, Pop을 막는다.
-            if (!ViewsVisibleStateCheck())
-                return;
-
-            if (_activeViewList.Count <= 0)
-                return;
-
-            MobileUIView view = _activeViewList.Find(x => x == uiView);
-            if (view == null)
-            {
-                Debug.LogError("해당 uiView가 열려있지 않습니다.");
-                return;
-            }
-
-            _activeViewList.Remove(uiView);
-            uiView.Hide();
-        }
 
 
         /// <summary> 꺼놨던 모든 UIView를 SetActive(true)한다. </summary>
-        public void AllShow()
+        public override void AllShow()
         {
             _rootUiView.UIView.gameObject.SetActive(true);
 
@@ -180,11 +135,13 @@ namespace Muks.MobileUI
             {
                 view.gameObject.SetActive(true);
             }
+
+            _isViewsInactive = false;
+            OnFocusHandler?.Invoke();
         }
 
 
-        /// <summary> 켜놨던 모든 UIView를 SetActive(false)한다. </summary>
-        public void AllHide()
+        public override void AllHide()
         {
             _rootUiView.UIView.gameObject.SetActive(false);
 
@@ -192,31 +149,15 @@ namespace Muks.MobileUI
             {
                 view.gameObject.SetActive(false);
             }
+
+            _isViewsInactive = true;
+            OnFocusHandler?.Invoke();
         }
 
-
-        //RootUI만을 끄는 상황이 없었으므로 임시 주석처리
-        //AllHide(), AllShow()로 끌 수 있기에 사용 하지 않음
-/*
-        public void HideRootUI()
-        {
-            _hideMainUICount += 1;
-            _rootUiView.UIView.gameObject?.SetActive(false);
-        }
-
-
-        public void ShowRootUI()
-        {
-            _hideMainUICount = Mathf.Clamp(_hideMainUICount - 1, 0, 1000);
-
-            if (_hideMainUICount == 0)
-                _rootUiView.UIView.gameObject?.SetActive(true);
-        }
-*/
 
 
         /// <summary>매개 변수에 해당하는 UIView Class가 활성화된 상태면 참, 아니면 거짓을 반환하는 함수</summary>
-        public bool ActiveViewCheck(string viewName)
+        public override bool CheckActiveView(string viewName)
         {
             if (_viewDic.TryGetValue(viewName, out MobileUIView uiView))
             {
@@ -234,17 +175,7 @@ namespace Muks.MobileUI
         }
 
 
-        /// <summary>매개 변수에 해당하는 UIView Class가 활성화된 상태면 참, 아니면 거짓을 반환하는 함수</summary>
-        public bool ActiveViewCheck(MobileUIView uiView)
-        {
-            if (_activeViewList.Contains(uiView))
-                return true;
-
-            return false;
-        }
-
-
-        public VisibleState GetVisibleStateByViewName(string viewName)
+        public override VisibleState GetVisibleState(string viewName)
         {
             if (_viewDic.TryGetValue(viewName, out MobileUIView view))
             {

@@ -1,8 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
+using Muks.MobileUI;
 using UnityEngine;
 using UnityEngine.UI;
-using Muks.MobileUI;
 
 public class MobileExitUI : MobileUIView
 {
@@ -11,9 +9,8 @@ public class MobileExitUI : MobileUIView
     [SerializeField] private Button _cancelButton;
 
 
-    public override void Init(MobileUINavigation uiNav)
+    public override void Init()
     {
-        base.Init(uiNav);
         gameObject.SetActive(false);
         _okButton.onClick.AddListener(OnOkButtonClicked);
         _cancelButton.onClick.AddListener(OnCancelButtonClicked);
@@ -42,7 +39,7 @@ public class MobileExitUI : MobileUIView
 
     private void OnCancelButtonClicked()
     {
-        _uiNav.Pop(this);
+        _uiNav.Pop("ExitUI");
     }
 
 

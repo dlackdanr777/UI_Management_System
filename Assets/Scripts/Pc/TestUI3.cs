@@ -20,10 +20,8 @@ public class TestUI3 : PcUIView
     private Vector2 _endPos => _tmpPos - new Vector2(0, 100);
 
 
-    public override void Init(PcUINavigation uiNav)
+    public override void Init()
     {
-        base.Init(uiNav);
-
         _canvasGroup = GetComponent<CanvasGroup>();
         _exitButton.onClick.AddListener(OnExitButtonClicked);
         _tmpPos = _animationTarget.anchoredPosition;
@@ -66,6 +64,6 @@ public class TestUI3 : PcUIView
 
     private void OnExitButtonClicked()
     {
-        _uiNav.Pop(this);
+        _uiNav.Pop("TestUI3");
     }
 }

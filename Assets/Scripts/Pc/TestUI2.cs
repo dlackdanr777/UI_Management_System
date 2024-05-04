@@ -1,9 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
 using Muks.PcUI;
 using Muks.Tween;
+using UnityEngine;
+using UnityEngine.UI;
 
 
 [RequireComponent(typeof(CanvasGroup))]
@@ -17,12 +15,10 @@ public class TestUI2 : PcUIView
     private float _targetAlpha => 1f;
 
 
-    public override void Init(PcUINavigation uiNav)
+    public override void Init()
     {
-        base.Init(uiNav);
         _canvasGroup = GetComponent<CanvasGroup>(); 
         _exitButton.onClick.AddListener(OnExitButtonClicked);
-
         gameObject.SetActive(false);
     }
 
@@ -60,6 +56,6 @@ public class TestUI2 : PcUIView
 
     private void OnExitButtonClicked()
     {
-        _uiNav.Pop(this);
+        _uiNav.Pop("TestUI2");
     }
 }

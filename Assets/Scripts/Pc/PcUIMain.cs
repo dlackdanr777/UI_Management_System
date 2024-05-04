@@ -30,12 +30,7 @@ public class PcUIMain : MonoBehaviour
     {
         _cursorImage.transform.position = Input.mousePosition;
 
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            _uiNav.Pop();
-        }
-
-        else if(Input.GetKeyDown(KeyCode.Q))
+        if(Input.GetKeyDown(KeyCode.Q))
         {
             ShowAndHideUI("TestUI1");
         }
@@ -54,7 +49,7 @@ public class PcUIMain : MonoBehaviour
 
     private void ShowAndHideUI(string viewName)
     {
-        VisibleState viewState = _uiNav.GetVisibleStateByViewName(viewName);
+        VisibleState viewState = _uiNav.GetVisibleState(viewName);
         if (viewState == VisibleState.Disappeared)
             _uiNav.Push(viewName);
 
