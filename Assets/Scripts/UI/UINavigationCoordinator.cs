@@ -23,6 +23,7 @@ namespace Muks.UI
         {
             for(int i = 0, count = _navDatas.Length; i < count; i++)
             {
+                //자료 구조를 순회하며 UINav 대리자에 함수를 넣고, LinkedList에 넣어 관리를 할 수 있도록 한다.
                 int index = i;
                 _navDatas[index].UiNav.OnFocusHandler += () => OnFocusEvent(_navDatas[index]);
                 _navList.AddLast(_navDatas[index]);
